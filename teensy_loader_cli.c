@@ -33,6 +33,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#define USE_LIBUSB
+
 void usage(const char *err)
 {
 	if(err != NULL) fprintf(stderr, "%s\n\n", err);
@@ -300,8 +302,11 @@ int teensy_write(void *buf, int len, double timeout)
 	while (timeout > 0) {
 		r = usb_control_msg(libusb_teensy_handle, 0x21, 9, 0x0200, 0,
 			(char *)buf, len, (int)(timeout * 1000.0));
-		if (r >= 0) return 1;
-		//printf("teensy_write, r=%d\n", r);
+		if (r >= 0) {
+			usleep(10000);
+			return 1;
+		}
+		printf("teensy_write error, r=%d\n", r);
 		usleep(10000);
 		timeout -= 0.01;  // TODO: subtract actual elapsed time
 	}
